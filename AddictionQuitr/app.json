@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "戒色助手",
+    "slug": "AddictionQuitr",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "scheme": "addictionquitr",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a1a2e"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.addictionquitr.app",
+      "infoPlist": {
+        "NSCalendarsUsageDescription": "We need calendar access to schedule your self-discipline events.",
+        "NSRemindersUsageDescription": "We use reminders to help you stay on track."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1a1a2e"
+      },
+      "package": "com.addictionquitr.app",
+      "permissions": ["SCHEDULE_EXACT_ALARM", "READ_CALENDAR", "WRITE_CALENDAR"]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "sounds": []
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Allow $(PRODUCT_NAME) to access your calendar for scheduling."
+        }
+      ]
+    ]
+  }
+}
