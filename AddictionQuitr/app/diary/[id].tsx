@@ -25,6 +25,7 @@ export default function DiaryEditorScreen() {
   const [content, setContent] = useState('');
   const [analysis, setAnalysis] = useState<DiaryAnalysis | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   useEffect(() => {
@@ -43,12 +44,14 @@ export default function DiaryEditorScreen() {
   }, [date]);
 
   const handleSave = async () => {
+    if (isSaving) return;
     if (!content.trim()) {
       Alert.alert('提示', '请先写些内容');
       return;
     }
 
     setIsSaving(true);
+    setSaveStatus('idle');
 
     try {
       const entryId = `diary_${date}`;
@@ -58,12 +61,17 @@ export default function DiaryEditorScreen() {
         content: content.trim(),
         analysis_json: analysis ? JSON.stringify(analysis) : undefined,
       });
-      Alert.alert('已保存', '日记已保存成功');
+      setSaveStatus('saved');
+      // Reset after 2 seconds
+      setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (e) {
-      Alert.alert('错误', '保存失败');
+      setSaveStatus('error');
+      Alert.alert('保存失败', '请稍后重试');
+      // Reset after 2 seconds
+      setTimeout(() => setSaveStatus('idle'), 2000);
+    } finally {
+      setIsSaving(false);
     }
-
-    setIsSaving(false);
   };
 
   const handleAnalyze = async () => {
@@ -110,12 +118,25 @@ export default function DiaryEditorScreen() {
 
       <View style={styles.actions}>
         <TouchableOpacity
-          style={styles.saveButton}
+          style={[
+            styles.saveButton,
+            saveStatus === 'saved' && styles.saveButtonSaved,
+            saveStatus === 'error' && styles.saveButtonError,
+            isSaving && styles.saveButtonDisabled,
+          ]}
           onPress={handleSave}
           disabled={isSaving}
+          activeOpacity={0.7}
         >
           {isSaving ? (
-            <ActivityIndicator color="#FFF" />
+            <View style={styles.buttonContent}>
+              <ActivityIndicator color="#FFF" size="small" />
+              <Text style={[styles.saveText, { marginLeft: 8 }]}>保存中...</Text>
+            </View>
+          ) : saveStatus === 'saved' ? (
+            <Text style={styles.saveTextSaved}>已保存 ✓</Text>
+          ) : saveStatus === 'error' ? (
+            <Text style={styles.saveTextError}>保存失败</Text>
           ) : (
             <Text style={styles.saveText}>保存</Text>
           )}
@@ -210,8 +231,32 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveButtonSaved: {
+    backgroundColor: '#4CAF50',
+  },
+  saveButtonError: {
+    backgroundColor: '#FF6B6B',
+  },
+  saveButtonDisabled: {
+    opacity: 0.7,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   saveText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  saveTextSaved: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  saveTextError: {
     color: '#FFF',
     fontSize: 16,
     fontWeight: '600',

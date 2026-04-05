@@ -5,11 +5,17 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, StyleSheet } from 'react-native';
 import { getDatabase } from '../services/database';
+import { useChatStore } from '../stores/chatStore';
 
 export default function RootLayout() {
   useEffect(() => {
-    // Initialize database on app start
-    getDatabase().catch(console.error);
+    // Initialize database and load today's chat session
+    const initApp = async () => {
+      await getDatabase();
+      // Load today's chat session after database is ready
+      await useChatStore.getState().loadTodaySession();
+    };
+    initApp().catch(console.error);
   }, []);
 
   return (

@@ -1,7 +1,8 @@
 // StatCharts - simple stats visualization for dashboard
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { getChecklistForDate, getTodayDate } from '../../services/database';
 
 interface StatData {
   streak: number;
@@ -14,6 +15,62 @@ interface StatData {
 
 interface Props {
   data: StatData;
+}
+
+function WeeklyChecklistProgress() {
+  const [weeklyData, setWeeklyData] = useState<{ day: string; count: number }[]>([]);
+
+  useEffect(() => {
+    const loadWeeklyData = async () => {
+      const days = ['一', '二', '三', '四', '五', '六', '日'];
+      const today = new Date();
+      const data: { day: string; count: number }[] = [];
+
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        const checklist = await getChecklistForDate(dateStr);
+        data.push({
+          day: days[date.getDay() === 0 ? 6 : date.getDay() - 1],
+          count: checklist.length,
+        });
+      }
+      setWeeklyData(data);
+    };
+    loadWeeklyData();
+  }, []);
+
+  const getCircleColor = (count: number) => {
+    if (count === 0) return '#2D2D44';
+    if (count <= 2) return '#4CAF50';
+    if (count <= 4) return '#66BB6A';
+    return '#81C784';
+  };
+
+  const isToday = (index: number) => index === 6;
+
+  return (
+    <View style={styles.weeklyProgressContainer}>
+      <Text style={styles.chartLabel}>本周七步法完成度</Text>
+      <View style={styles.weeklyRow}>
+        {weeklyData.map((item, index) => (
+          <View key={index} style={styles.dayColumn}>
+            <View
+              style={[
+                styles.progressCircle,
+                { backgroundColor: getCircleColor(item.count) },
+                isToday(index) && styles.todayCircle,
+              ]}
+            >
+              <Text style={styles.progressText}>{item.count}</Text>
+            </View>
+            <Text style={[styles.barDay, isToday(index) && styles.todayText]}>{item.day}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
 }
 
 function StatCard({ icon, label, value, color }: { icon: string; label: string; value: string; color: string }) {
@@ -66,6 +123,7 @@ export default function StatCharts({ data }: Props) {
         <StatCard icon="⚡" label="今日冲动" value={`${data.todayUrgeCount}次`} color="#FF6B6B" />
       </View>
 
+      <WeeklyChecklistProgress />
       <MiniBarChart data={data.weeklyMood} color="#4ECDC4" label="本周心情趋势" />
       <MiniBarChart data={data.weeklyUrges} color="#FF6B6B" label="本周冲动次数" />
     </View>
@@ -154,5 +212,41 @@ const styles = StyleSheet.create({
     color: '#666680',
     fontSize: 11,
     marginTop: 6,
+  },
+  weeklyProgressContainer: {
+    backgroundColor: '#1E1E36',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  weeklyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dayColumn: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  progressCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  todayCircle: {
+    borderWidth: 2,
+    borderColor: '#6C5CE7',
+  },
+  progressText: {
+    color: '#E8E8F0',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  todayText: {
+    color: '#6C5CE7',
+    fontWeight: '700',
   },
 });

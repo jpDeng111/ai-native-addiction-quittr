@@ -142,7 +142,8 @@ export interface AIResponse {
 
 export async function sendChatMessage(
   messages: ChatMessage[],
-  useTools: boolean = true
+  useTools: boolean = true,
+  systemPrompt?: string
 ): Promise<AIResponse> {
   const apiUrl = getBaseUrl();
   const apiKey = _apiKey;
@@ -152,7 +153,7 @@ export async function sendChatMessage(
   }
 
   const requestMessages: ChatMessage[] = [
-    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'system', content: systemPrompt || SYSTEM_PROMPT },
     ...messages,
   ];
 
