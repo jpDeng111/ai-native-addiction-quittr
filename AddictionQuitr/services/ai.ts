@@ -4,7 +4,7 @@ import { SYSTEM_PROMPT, TOOL_DEFINITIONS } from '../utils/prompts';
 
 // ---- Provider Configuration ----
 
-export type LLMProvider = 'qwen' | 'deepseek' | 'openai' | 'custom';
+export type LLMProvider = 'qwen' | 'coding_plan' | 'deepseek' | 'openai' | 'custom';
 
 export interface ProviderConfig {
   id: LLMProvider;
@@ -19,8 +19,24 @@ export const LLM_PROVIDERS: Record<LLMProvider, ProviderConfig> = {
     id: 'qwen',
     name: '通义千问 (Qwen)',
     baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
-    defaultModel: 'qwen-plus',
-    models: ['qwen-turbo', 'qwen-plus', 'qwen-max', 'qwen-long'],
+    defaultModel: 'qwen3.6-plus',
+    models: ['qwen3.6-plus', 'qwen3.5-plus', 'qwen-plus', 'qwen-turbo', 'qwen-max', 'qwen-long'],
+  },
+  coding_plan: {
+    id: 'coding_plan',
+    name: 'Coding Plan (多模型)',
+    baseUrl: 'https://coding.dashscope.aliyuncs.com/v1/chat/completions',
+    defaultModel: 'qwen3.5-plus',
+    models: [
+      'qwen3.5-plus',
+      'qwen3-max-2026-01-23',
+      'qwen3-coder-next',
+      'qwen3-coder-plus',
+      'glm-5',
+      'glm-4.7',
+      'kimi-k2.5',
+      'MiniMax-M2.5',
+    ],
   },
   deepseek: {
     id: 'deepseek',
@@ -49,7 +65,7 @@ export const LLM_PROVIDERS: Record<LLMProvider, ProviderConfig> = {
 
 let _currentProvider: LLMProvider = 'qwen';
 let _currentModel: string = LLM_PROVIDERS.qwen.defaultModel;
-let _apiKey: string = '';
+let _apiKey: string = 'sk-2f6cef85183643afbaccbd881a0e1c71';
 let _customBaseUrl: string = '';
 let _bailianAppId: string = '';
 
@@ -147,6 +163,11 @@ export async function sendChatMessage(
     max_tokens: 1024,
     stream: false,
   };
+
+  // Disable deep thinking for qwen3.x models to enable tool calling
+  if (_currentModel.startsWith('qwen3')) {
+    body.enable_thinking = false;
+  }
 
   if (useTools) {
     body.tools = TOOL_DEFINITIONS;

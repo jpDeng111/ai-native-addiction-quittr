@@ -37,9 +37,9 @@ export const useUserStore = create<UserState>((set, get) => ({
   isPro: false,
   dailyMessageCount: 0,
   maxFreeMessages: 20,
-  apiKey: '',
+  apiKey: 'sk-2f6cef85183643afbaccbd881a0e1c71',
   provider: 'qwen' as LLMProvider,
-  model: 'qwen-plus',
+  model: 'qwen3.6-plus',
   customBaseUrl: '',
   bailianAppId: '',
 
